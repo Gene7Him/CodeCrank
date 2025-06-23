@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from . import docker_runner
@@ -5,16 +6,26 @@ import tempfile
 import os
 import shutil
 import git
+import subprocess
+
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class RepoRequest(BaseModel):
     repo_url: str
 
 @app.post("/run-repo/")
 def run_repo(request: RepoRequest):
-    return docker_runner.run_in_docker(request.repo_url)
-    repo_url = request.repo_url
+    #return docker_runner.run_in_docker(request.repo_url)
+    repo_url = request.repo_url.rstrip('/')
+
     temp_dir = tempfile.mkdtemp()
 
     try:
@@ -45,7 +56,8 @@ def run_repo(request: RepoRequest):
         shutil.rmtree(temp_dir)
 
 def find_entrypoint(path):
-    for filename in os.listdir(path):
-        if filename.lower().startswith("main") and filename.endswith(".py"):
-            return os.path.join(path, filename)
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file.lower().startswith("main") and file.endswith(".py"):
+                return os.path.join(root, file)
     return None

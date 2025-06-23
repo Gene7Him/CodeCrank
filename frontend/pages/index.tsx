@@ -30,10 +30,12 @@ export default function Home() {
       />
       <button
         onClick={handleRun}
-        className="mt-4 px-4 py-2 bg-black text-white"
+        disabled={loading}
+        className={`mt-4 px-4 py-2 text-white ${loading ? "bg-gray-600" : "bg-black"}`}
       >
         {loading ? 'Running...' : 'Run Repo'}
       </button>
+
       {output && (
         <pre className="mt-6 p-4 bg-gray-100 text-sm whitespace-pre-wrap">
           {output}
